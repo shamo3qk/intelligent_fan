@@ -26,6 +26,7 @@ poetry.lock
 *.egg-info/
 dist/
 build/
+wheels/
 
 # Jupyter Notebook
 .ipynb_checkpoints/
