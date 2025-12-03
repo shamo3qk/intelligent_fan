@@ -8,6 +8,19 @@ Relay_Ch1 = 26
 Relay_Ch2 = 20
 Relay_Ch3 = 21
 
+speed_levels = [
+    [GPIO.LOW, GPIO.HIGH, GPIO.HIGH],  # Weak
+    [GPIO.HIGH, GPIO.LOW, GPIO.HIGH],  # Medium
+    [GPIO.HIGH, GPIO.HIGH, GPIO.LOW],  # Strong
+]
+
+
+def set_speed_level(level: int) -> None:
+    speed_level = speed_levels[level]
+    GPIO.output(Relay_Ch1, bool(speed_level[0]))
+    GPIO.output(Relay_Ch2, bool(speed_level[1]))
+    GPIO.output(Relay_Ch3, bool(speed_level[2]))
+
 
 def init():
     GPIO.setwarnings(False)
@@ -25,33 +38,10 @@ def run_speed_controller():
         while True:
             if 3 >= (a + b + c) >= 1 or a == b == c:
                 if a + b + c == 1 or a == b == c == 1:
-                    GPIO.output(Relay_Ch1, GPIO.LOW)
-                    GPIO.output(Relay_Ch2, GPIO.HIGH)
-                    GPIO.output(Relay_Ch3, GPIO.HIGH)
+                    set_speed_level(1)
                 elif a + b + c == 2 or a == b == c == 2:
-                    GPIO.output(Relay_Ch1, GPIO.HIGH)
-                    GPIO.output(Relay_Ch2, GPIO.LOW)
-                    GPIO.output(Relay_Ch3, GPIO.HIGH)
+                    set_speed_level(2)
                 elif a + b + c == 3 or a == b == c == 3:
-                    GPIO.output(Relay_Ch1, GPIO.HIGH)
-                    GPIO.output(Relay_Ch2, GPIO.HIGH)
-                    GPIO.output(Relay_Ch3, GPIO.LOW)
-
-            # if totalFingers == 0:
-            #     GPIO.output(Relay_Ch1, GPIO.HIGH)
-            #     GPIO.output(Relay_Ch2, GPIO.HIGH)
-            #     GPIO.output(Relay_Ch3, GPIO.HIGH)
-            # elif totalFingers == 1:
-            #     GPIO.output(Relay_Ch1, GPIO.LOW)
-            #     GPIO.output(Relay_Ch2, GPIO.HIGH)
-            #     GPIO.output(Relay_Ch3, GPIO.HIGH)
-            # elif totalFingers == 2:
-            #     GPIO.output(Relay_Ch1, GPIO.HIGH)
-            #     GPIO.output(Relay_Ch2, GPIO.LOW)
-            #     GPIO.output(Relay_Ch3, GPIO.HIGH)
-            # elif totalFingers == 3:
-            #     GPIO.output(Relay_Ch1, GPIO.HIGH)
-            #     GPIO.output(Relay_Ch2, GPIO.HIGH)
-            #     GPIO.output(Relay_Ch3, GPIO.LOW)
+                    set_speed_level(3)
     except KeyboardInterrupt:
         GPIO.cleanup()
