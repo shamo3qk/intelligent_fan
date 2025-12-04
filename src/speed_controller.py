@@ -1,7 +1,8 @@
+from enum import IntEnum
+
 import RPi.GPIO as GPIO
 
 from Record import a, b, c
-from rotation_controller import rotate
 
 # Pin for relay channels
 Relay_Ch1 = 26
@@ -15,8 +16,29 @@ speed_levels = [
 ]
 
 
-def set_speed_level(level: int) -> None:
-    speed_level = speed_levels[level]
+class FanArea(IntEnum):
+    One = 1
+    Two = 2
+    Three = 3
+
+
+class SpeedLevel(IntEnum):
+    Off = 0
+    Weak = 1
+    Medium = 2
+    Strong = 3
+
+
+fan_speed = {
+    FanArea.One: SpeedLevel.Weak,
+    FanArea.Two: SpeedLevel.Weak,
+    FanArea.Three: SpeedLevel.Weak,
+}
+current_area: FanArea = FanArea.One
+
+
+def set_speed_level(level: SpeedLevel) -> None:
+    speed_level = speed_levels[level.value]
     GPIO.output(Relay_Ch1, bool(speed_level[0]))
     GPIO.output(Relay_Ch2, bool(speed_level[1]))
     GPIO.output(Relay_Ch3, bool(speed_level[2]))
@@ -38,10 +60,10 @@ def run_speed_controller():
         while True:
             if 3 >= (a + b + c) >= 1 or a == b == c:
                 if a + b + c == 1 or a == b == c == 1:
-                    set_speed_level(1)
+                    set_speed_level(SpeedLevel.Weak)
                 elif a + b + c == 2 or a == b == c == 2:
-                    set_speed_level(2)
+                    set_speed_level(SpeedLevel.Medium)
                 elif a + b + c == 3 or a == b == c == 3:
-                    set_speed_level(3)
+                    set_speed_level(SpeedLevel.Strong)
     except KeyboardInterrupt:
         GPIO.cleanup()
