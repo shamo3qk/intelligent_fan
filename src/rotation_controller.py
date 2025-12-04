@@ -19,13 +19,7 @@ step_sequence = [
     [GPIO.HIGH, GPIO.LOW, GPIO.LOW, GPIO.HIGH],
 ]
 
-y = 0
-
-C = 200
-A = C
-B = -C
-
-rotate = C  # current angle of fan's forward direction
+MAX_STEP = 200  # rotate 0.9 degree per step, total 180 degree
 
 
 def init():
@@ -43,51 +37,34 @@ def reset():
     GPIO.output(out4, GPIO.LOW)
 
 
+def step_motor(current_sequence: int, is_clockwise: bool):
+    if is_clockwise:
+        index = (current_sequence + 1) % len(step_sequence)
+    else:
+        index = (current_sequence - 1) % len(step_sequence)
+
+    for pin, value in zip(PINS, step_sequence[index]):
+        GPIO.output(pin, bool(value))
+
+
 def run_rotation_controller():
     init()
 
-    positive = False
-    negative = False
-    flag = False
-    i = 0  # sequence index
+    current_sequence = 0
+    is_clockwise = True
 
     try:
         while True:
             reset()
 
-            if flag:
-                x = A  # x =  200
-            else:
-                x = B  # x = -200
+            for step in range(0, MAX_STEP, 1):
+                step_motor(current_sequence, is_clockwise)
 
-            if x > 0 and x <= 400:
-                for y in range(x, 0, -1):
-                    if negative:
-                        y = y + 2
-                        negative = False
+                if is_clockwise:
+                    current_sequence = (current_sequence + 1) % len(step_sequence)
+                else:
+                    current_sequence = (current_sequence - 1) % len(step_sequence)
 
-                    positive = True
-                    print(y)
-
-                    for pin, value in zip(PINS, step_sequence[i]):
-                        GPIO.output(pin, bool(value))
-
-                    i = (i + 1) % len(step_sequence)
-            elif x < 0 and x >= -400:
-                x = x * -1
-                for y in range(x, 0, -1):
-                    if positive:
-                        y = y + 3
-                        positive = False
-
-                    negative = True
-                    print(-y)
-
-                    for pin, value in zip(PINS, step_sequence[i]):
-                        GPIO.output(pin, bool(value))
-
-                    i = (i - 1) % len(step_sequence)
-
-            flag = not flag
+            is_clockwise = not is_clockwise
     except KeyboardInterrupt:
         GPIO.cleanup()
